@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Barbearia Premium - Agendamento Rápido</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Roboto, sans-serif; }
+        body { background-color: #f4f4f6; color: #1a1a1a; padding-bottom: 90px; }
+        .hero { background: #111; color: #fff; text-align: center; padding: 40px 20px; }
+        .hero h1 { font-size: 24px; margin-bottom: 5px; letter-spacing: 1px; }
+        .hero p { font-size: 14px; color: #aaa; }
+        .container { max-width: 600px; margin: 20px auto; padding: 0 15px; }
+        .section-title { font-size: 16px; text-transform: uppercase; color: #666; margin: 20px 0 10px 5px; letter-spacing: 0.5px; }
+        .card { background: #fff; border-radius: 8px; padding: 15px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 4px rgba(0,0,0,0.04); }
+        .card-info h3 { font-size: 16px; margin-bottom: 4px; }
+        .card-info p { font-size: 14px; color: #88px; font-weight: bold; color: #111; }
+        .btn-select { background: #111; color: #fff; border: none; padding: 8px 14px; border-radius: 4px; cursor: pointer; font-size: 13px; font-weight: 600; transition: 0.2s; }
+        .btn-select.selected { background: #22c55e; }
+        .footer-bar { position: fixed; bottom: 0; left: 0; right: 0; background: #fff; box-shadow: 0 -4px 10px rgba(0,0,0,0.08); padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; max-width: 600px; margin: 0 auto; border-radius: 12px 12px 0 0; }
+        .total-info p { font-size: 12px; color: #666; }
+        .total-info h2 { font-size: 20px; color: #111; }
+        .btn-send { background: #22c55e; color: #fff; text-decoration: none; padding: 12px 20px; border-radius: 6px; font-weight: bold; font-size: 15px; display: flex; align-items: center; gap: 8px; cursor: pointer; border: none; }
+    </style>
+</head>
+<body>
+
+    <div class="hero">
+        <h1 id="nome-loja">BARBEARIA EXECUTIVA</h1>
+        <p>Selecione os serviços e agende pelo WhatsApp</p>
+    </div>
+
+    <div class="container">
+        <div class="section-title">Serviços Disponíveis</div>
+        <div id="lista-servicos"></div>
+    </div>
+
+    <div class="footer-bar">
+        <div class="total-info">
+            <p>Total selecionado</p>
+            <h2 id="txt-total">R$ 0,00</h2>
+        </div>
+        <button class="btn-send" onclick="enviarPedido()">Agendar via WhatsApp</button>
+    </div>
+
+    <script>
+        // ESTE É O ARRAY/LISTA INTELIGENTE QUE VOCÊ ALTERA EM SEGUNDOS PARA QUALQUER CLIENTE:
+        const servicos = [
+            { id: 1, nome: "Corte Masculino Tradicional", preco: 40.00 },
+            { id: 2, nome: "Barba Completa com Toalha Quente", preco: 30.00 },
+            { id: 3, nome: "Combo: Cabelo + Barba", preco: 65.00 },
+            { id: 4, nome: "Acabamento / Pezinho", preco: 15.00 },
+            { id: 5, nome: "Sobrancelha Navalhada", preco: 15.00 }
+        ];
+
+        let carrinho = [];
+
+        function renderizarServicos() {
+            const container = document.getElementById('lista-servicos');
+            container.innerHTML = '';
+            servicos.forEach(s => {
+                container.innerHTML += `
+                    <div class="card">
+                        <div class="card-info">
+                            <h3>${s.nome}</h3>
+                            <p>R$ ${s.preco.toFixed(2).replace('.', ',')}</p>
+                        </div>
+                        <button class="btn-select" id="btn-${s.id}" onclick="alternarServico(${s.id})">Selecionar</button>
+                    </div>`;
+            });
+        }
+
+        function alternarServico(id) {
+            const index = carrinho.indexOf(id);
+            const btn = document.getElementById(`btn-${id}`);
+            
+            if (index === -1) {
+                carrinho.push(id);
+                btn.innerText = "Selecionado ✓";
+                btn.classList.add('selected');
+            } else {
+                carrinho.splice(index, 1);
+                btn.innerText = "Selecionar";
+                btn.classList.remove('selected');
+            }
+            calcularTotal();
+        }
+
+        function calcularTotal() {
+            let total = 0;
+            carrinho.forEach(id => {
+                const s = servicos.find(item => item.id === id);
+                total += s.preco;
+            });
+            document.getElementById('txt-total').innerText = `R$ ${total.toFixed(2).replace('.', ',')}`;
+        }
+
+        function enviarPedido() {
+            if (carrinho.length === 0) {
+                alert("Por favor, selecione pelo menos um serviço antes de agendar!");
+                return;
+            }
+
+            let textoMensagem = "Olá! Gostaria de realizar um agendamento:\n\n*Serviços Selecionados:*\n";
+            let total = 0;
+
+            carrinho.forEach(id => {
+                const s = servicos.find(item => item.id === id);
+                textoMensagem += `• ${s.nome} - R$ ${s.preco.toFixed(2).replace('.', ',')}\n`;
+                total += s.preco;
+            });
+
+            textoMensagem += `\n*Total:* R$ ${total.toFixed(2).replace('.', ',')}\n\n_Gostaria de verificar os horários disponíveis para esta semana!_`;
+            
+            // INSIRA O WHATSAPP DO CLIENTE AQUI (EX: 5531999999999) - USANDO O MEU DE TESTE POR ENQUANTO:
+            const numeroWhats = "5531999999999"; 
+            const url = `https://whatsapp.com{numeroWhats}&text=${encodeURIComponent(textoMensagem)}`;
+            window.open(url, '_blank');
+        }
+
+        renderizarServicos();
+    </script>
+</body>
+</html>
